@@ -67,11 +67,9 @@ Before you begin, ensure you have the following installed on your local machine:
 
 3. The Prometheus metrics endpoint will be available at `http://127.0.0.1:5000/metrics`.
 
-## Prometheus Configuration
+## Prometheus and Grafana Setup
 
-1. Download and install Prometheus from the [official website](https://prometheus.io/download/).
-
-2. Create a configuration file `prometheus.yml` with the following content:
+1. Create a Prometheus configuration file `prometheus.yml` with the following content:
 
     ```yaml
     global:
@@ -80,38 +78,49 @@ Before you begin, ensure you have the following installed on your local machine:
     scrape_configs:
       - job_name: 'flask'
         static_configs:
-          - targets: ['127.0.0.1:5000']
+          - targets: ['host.docker.internal:5000']
     ```
 
-3. Start Prometheus with the configuration file:
+2. Create a `docker-compose.yml` file to set up Prometheus and Grafana using Docker:
+
+    ```yaml
+    version: '3.7'
+    services:
+      prometheus:
+        image: prom/prometheus
+        volumes:
+          - ./prometheus.yml:/etc/prometheus/prometheus.yml
+        ports:
+          - "9090:9090"
+
+      grafana:
+        image: grafana/grafana-oss
+        ports:
+          - "3000:3000"
+    ```
+
+3. Start Prometheus and Grafana using Docker Compose:
 
     ```bash
-    prometheus --config.file=prometheus.yml
+    docker-compose up -d
     ```
 
-## Grafana Integration
+4. Prometheus will be available at `http://localhost:9090/`.
 
-1. Download and install Grafana from the [official website](https://grafana.com/grafana/download).
+5. Grafana will be available at `http://localhost:3000/`.
 
-2. Start Grafana:
+6. Add Prometheus as a data source in Grafana:
+    - Open Grafana in your browser and log in (default credentials: admin/admin).
+    - Go to Configuration > Data Sources > Add data source.
+    - Select Prometheus.
+    - Set the URL to `http://prometheus:9090`.
+    - Click Save & Test.
 
-    ```bash
-    grafana-server
-    ```
-
-3. Open Grafana in your browser at `http://localhost:3000/`.
-
-4. Add Prometheus as a data source:
-    - Go to Configuration > Data Sources > Add data source
-    - Select Prometheus
-    - Set the URL to `http://localhost:9090`
-    - Click Save & Test
-
-5. Import a dashboard to visualize Flask metrics:
-    - Go to Create > Import
-    - Enter the dashboard ID from the [Grafana dashboards library](https://grafana.com/grafana/dashboards) (e.g., 1860 for a general Node Exporter Full dashboard)
-    - Click Load
-    - Select Prometheus as the data source and click Import
+7. Import a dashboard to visualize Flask metrics:
+    - Go to Create > Import.
+    - Enter the dashboard ID from the [Grafana dashboards library](https://grafana.com/grafana/dashboards) (e.g., 1860 for a general Node Exporter Full dashboard).
+    - Click Load.
+    - Select Prometheus as the data source and click Import.
 
 ## Contributing
 
